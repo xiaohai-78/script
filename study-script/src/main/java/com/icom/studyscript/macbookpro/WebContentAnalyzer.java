@@ -1,10 +1,18 @@
 package com.icom.studyscript.macbookpro;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Scanner;
+import java.util.Objects;
 import java.util.Properties;
+import java.util.Scanner;
 
 import javax.mail.Authenticator;
 import javax.mail.Message;
@@ -15,15 +23,29 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+@Controller
+@Component
 public class WebContentAnalyzer {
+
+    private static final Logger LOG = LoggerFactory.getLogger(WebContentAnalyzer.class);
     private static final String TARGET_URL = "https://www.apple.com.cn/shop/refurbished/mac/512gb-14-英寸-macbook-pro";
     private static final String TARGET_STRING_1 = "11,539";
     private static final String TARGET_STRING_2 = "12,699";
     private static final String TARGET_STRING_3 = "13,269";
     private static final String TARGET_STRING_4 = "13,849";
+    private static final String TARGET_STRING_5 = "15,579";
     private static int printCount = 0;
+    private static int sendMailCount = 0;
+
 
     public static void main(String[] args) {
+        WebContentAnalyzer webContentAnalyzer = new WebContentAnalyzer();
+        webContentAnalyzer.script();
+    }
+
+    @ResponseBody
+    @RequestMapping("script")
+    public void script() {
         while (true) {
             try {
                 // Connect to the target URL and retrieve its content
@@ -39,27 +61,26 @@ public class WebContentAnalyzer {
                 int count2 = countSubstring(content, TARGET_STRING_2);
                 int count3 = countSubstring(content, TARGET_STRING_3);
                 int count4 = countSubstring(content, TARGET_STRING_4);
-                if (count1 > 0 || count2 > 0) {
-                    String str = "找到 " + count1 + " 个 " + TARGET_STRING_1 + " 和 "
-                            + count2 + " 个 " + TARGET_STRING_2 + " 和 " + count3 + " 个 " + TARGET_STRING_3
-                            + " 和 " + count4 + " 个 " + TARGET_STRING_4;
-                    System.out.println(str);
-                    printCount++;
+                int count5 = countSubstring(content, TARGET_STRING_5);
+                String str = "找到 " + count1 + " 个 " + TARGET_STRING_1 + " 和 "
+                        + count2 + " 个 " + TARGET_STRING_2 + " 和 " + count3 + " 个 " + TARGET_STRING_3
+                        + " 和 " + count4 + " 个 " + TARGET_STRING_4 + " 和 " + count5 + " 个 " + TARGET_STRING_5 + " 已请求次数为：" + ++printCount;
+                LOG.info(str);
 
-                    // Sleep for 30 minutes if the program has printed more than 5 times
-                    if (printCount > 5) {
-                        System.out.println("Printing suspended for 30 minutes");
-//                        Thread.sleep(30 * 60 * 1000);
-                        printCount = 0;
-                    }
-                } else {
-                    System.out.println("No occurrence of " + TARGET_STRING_1 + " or " + TARGET_STRING_2);
+                if (!Objects.equals(count4, 0) || !Objects.equals(count5, 0)){
+                    sendMailCount++;
+                    sendEmail(str);
                 }
-
-                // Wait for 5 seconds before the next request
-                Thread.sleep(5 * 1000);
+                // Sleep for 30 minutes if the program has printed more than 5 times
+                if (sendMailCount > 4) {
+                    LOG.info("Printing suspended for 30 minutes");
+                    Thread.sleep(30 * 60 * 1000);
+                    sendMailCount = 0;
+                }
+                // Wait for 60 seconds before the next request
+                Thread.sleep(60 * 1000);
             } catch (IOException | InterruptedException e) {
-                System.err.println("Error while analyzing web content: " + e.getMessage());
+                LOG.error("Error while analyzing web content: " + e.getMessage());
             }
         }
     }
@@ -75,19 +96,19 @@ public class WebContentAnalyzer {
         return count;
     }
 
-    public void sendEmail(String content) {
+    public static void sendEmail(String content) {
         // Sender's email address and password
-        final String senderEmail = "your_email@example.com";
-        final String senderPassword = "your_email_password";
+        final String senderEmail = "";
+        final String senderPassword = "";
 
         // Recipient's email address
-        final String recipientEmail = "854262144@qq.com";
+        final String recipientEmail = "";
 
         // Mail server configuration
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.smtp.host", "smtp.gmail.com");
+        props.put("mail.smtp.host", "smtp.qq.com");
         props.put("mail.smtp.port", "587");
 
         // Authenticate with the mail server
@@ -107,10 +128,9 @@ public class WebContentAnalyzer {
 
             // Send the message
             Transport.send(message);
-
-            System.out.println("Email sent successfully");
+            LOG.info("Email sent successfully");
         } catch (MessagingException e) {
-            System.err.println("Error while sending email: " + e.getMessage());
+            LOG.info("Error while sending email: " + e.getMessage());
         }
     }
 }
