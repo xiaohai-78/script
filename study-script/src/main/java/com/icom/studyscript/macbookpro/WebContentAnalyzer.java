@@ -29,6 +29,7 @@ public class WebContentAnalyzer {
 
     private static final Logger LOG = LoggerFactory.getLogger(WebContentAnalyzer.class);
     private static final String TARGET_URL = "https://www.apple.com.cn/shop/refurbished/mac/512gb-14-英寸-macbook-pro";
+//    private static final String TARGET_URL = "https://www.apple.com.cn/shop/refurbished/mac/512gb-14-%E8%8B%B1%E5%AF%B8-macbook-pro-32gb";
     private static final String TARGET_STRING_1 = "11,539";
     private static final String TARGET_STRING_2 = "12,699";
     private static final String TARGET_STRING_3 = "13,269";
@@ -67,9 +68,9 @@ public class WebContentAnalyzer {
                         + " 和 " + count4 + " 个 " + TARGET_STRING_4 + " 和 " + count5 + " 个 " + TARGET_STRING_5 + " 已请求次数为：" + ++printCount;
                 LOG.info(str);
 
-                if (!Objects.equals(count4, 0) || !Objects.equals(count5, 0)){
+                if (!Objects.equals(count4, 0) ){
                     sendMailCount++;
-                    sendEmail(str);
+//                    sendEmail(str);
                 }
                 // Sleep for 30 minutes if the program has printed more than 5 times
                 if (sendMailCount > 4) {
